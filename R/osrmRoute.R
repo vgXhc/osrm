@@ -49,8 +49,10 @@
 #' @param exclude pass an optional "exclude" request option to the OSRM API.
 #' @param osrm.server the base URL of the routing server.
 #' @param osrm.profile the routing profile to use, e.g. "car", "bike" or "foot".
+#' @param annotations Flag whether to return detailed route metadata. Currently
+#' only returns all nodes of a route
 #' @return
-#' The output of this function is an sf LINESTRING of the shortest route.\cr
+#' The output of this function is a list of length two. The first element is an sf LINESTRING of the shortest route.\cr
 #' It contains 4 fields: \itemize{
 #'   \item starting point identifier
 #'   \item destination identifier
@@ -62,7 +64,9 @@
 #' If src (or loc) is an sfc or sf object, the route has the same CRS
 #' as src (or loc).\cr\cr
 #' If overview is FALSE, a named numeric vector is returned. It contains travel
-#' time (in minutes) and travel distance (in kilometers).
+#' time (in minutes) and travel distance (in kilometers).\cr
+#' The second list element is a character vector of all nodes of the route (if 
+#' the \code{annotations} parameter is set to TRUE)
 #' @importFrom sf st_as_sfc st_crs st_geometry st_sf st_as_sf st_transform
 #' @examples
 #' \dontrun{
@@ -120,6 +124,7 @@
 osrmRoute <- function(src,
                       dst,
                       loc,
+                      annotations = FALSE,
                       overview = "simplified",
                       exclude,
                       osrm.server = getOption("osrm.server"),
@@ -152,7 +157,9 @@ osrmRoute <- function(src,
   url <- paste0(
     url,
     coords,
-    "?alternatives=false&geometries=polyline&steps=false&overview=",
+    "?alternatives=false&annotations=",
+    ifelse(annotations == FALSE, "false", "true"),
+    "&geometries=polyline&steps=false&overview=",
     tolower(overview),
     "&generate_hints=false"
   )
@@ -184,7 +191,10 @@ osrmRoute <- function(src,
       distance = res$routes$distance / 1000
     ), 2))
   }
-
+  # Nodes of the route
+  nodes <- res$routes$legs[[1]]$annotation[[1]]$nodes
+  print(nodes)
+  
   # Coordinates of the line
   geodf <- googlePolylines::decode(res$routes$geometry)[[1]][, c(2, 1)]
   # Convert to LINESTRING
@@ -202,5 +212,5 @@ osrmRoute <- function(src,
     rosf <- st_transform(rosf, oprj)
   }
 
-  return(rosf)
+  return(list(rosf, nodes))
 }

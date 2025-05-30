@@ -8,6 +8,7 @@ osrmRoute(
   src,
   dst,
   loc,
+  annotations = FALSE,
   overview = "simplified",
   exclude,
   osrm.server = getOption("osrm.server"),
@@ -51,6 +52,9 @@ the order they are stored in \code{loc} and the last row or element is
 the destination.\cr
 If relevant, row names are used as identifiers.\cr}
 
+\item{annotations}{Flag whether to return detailed route metadata. Currently
+only returns all nodes of a route}
+
 \item{overview}{"full", "simplified" or FALSE. Use "full" to return the
 detailed geometry, use "simplified" to return a simplified geometry, use
 FALSE to return only time and distance.}
@@ -62,7 +66,7 @@ FALSE to return only time and distance.}
 \item{osrm.profile}{the routing profile to use, e.g. "car", "bike" or "foot".}
 }
 \value{
-The output of this function is an sf LINESTRING of the shortest route.\cr
+The output of this function is a list of length two. The first element is an sf LINESTRING of the shortest route.\cr
 It contains 4 fields: \itemize{
   \item starting point identifier
   \item destination identifier
@@ -74,7 +78,9 @@ reference system (CRS) of the route is EPSG:4326 (WGS84).\cr
 If src (or loc) is an sfc or sf object, the route has the same CRS
 as src (or loc).\cr\cr
 If overview is FALSE, a named numeric vector is returned. It contains travel
-time (in minutes) and travel distance (in kilometers).
+time (in minutes) and travel distance (in kilometers).\cr
+The second list element is a character vector of all nodes of the route (if 
+the \code{annotations} parameter is set to TRUE)
 }
 \description{
 Build and send an OSRM API query to get the travel geometry
